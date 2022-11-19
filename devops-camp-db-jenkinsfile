@@ -23,7 +23,14 @@ pipeline {
                                   echo err.getMessage()
                               }
                           }
-                      } {
+                      } stage('Security scanning') {
+            steps {
+                  withCredentials([usernamePassword(credentialsId: 'keithjandersonharborproject', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                      echo "Scanning $DB_IMAGE_NAME image"
+                      sh 'python harbor_scanner.py -i $DB_IMAGE_NAME -r $HARBOR_REGISTRY -p $HARBOR_PROJECT -c ${USERNAME}:${PASSWORD}'
+                  }
+            }
+        } {
                   steps { withCredentials([usernameColonPassword(credentialsId: 'keithjandersonharborproject', variable: 'HARBOR-AUTH')]) {
                           script {
                               sh 'docker build -t $DB_IMAGE_NAME-$COMMIT_HASH -f ./db/Dockerfile ./afs-labs-student'
